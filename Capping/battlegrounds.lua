@@ -99,6 +99,9 @@ do  -- POI handling
 		end
 		Capping:RegisterTempEvent("WORLD_MAP_UPDATE")
 	end
+	function Capping:SetupAssault(duration, skipKeep)
+		SetupAssault(duration, skipKeep)
+	end
 	-----------------------------------
 	function Capping:WORLD_MAP_UPDATE()
 	-----------------------------------
@@ -163,6 +166,7 @@ local NewEstimator
 do
 	local ascore, atime, abases, hscore, htime, hbases, updatetime, currentbg
 	NewEstimator = function(bg)  -- resets estimator and sets new battleground
+		if Capping.bgprofile then return end
 		if not Capping.UPDATE_WORLD_STATES then
 			local f2 = L["Final: %d - %d"]
 			local lookup = {
@@ -241,10 +245,9 @@ function Capping:StartAV()
 	if not self.AVAssaults then
 		pname = pname or UnitName("player")
 		---------------------------
-		function Capping:AVQuests()
+		function Capping:AVQuests(event)
 		---------------------------
 			if not self.db.avquest then return end
-			local event = event
 			local target = UnitName("target")
 			if event == "GOSSIP_SHOW" or event == "QUEST_PROGRESS" then
 				if target == L["Smith Regzar"] or target == L["Murgot Deepforge"] then
@@ -290,16 +293,43 @@ function Capping:StartAV()
 		------------------------------------------------------
 		function Capping:AVSync(prefix, message, chan, sender)
 		------------------------------------------------------
-			if prefix ~= "cap" or sender == pname then return end
+			if prefix ~= "cap" or type(sender) ~= "string" or sender == pname or type(message) ~= "string" or #message > 255 then return end
+			if chan ~= "BATTLEGROUND" and chan ~= "WHISPER" then return end
+			local member = false
+			for i = 1, GetNumRaidMembers() do
+				local name, realm = UnitName("raid"..i)
+				local rosterName = GetRaidRosterInfo(i)
+				if sender == rosterName or (name and (sender == name or (realm and realm ~= "" and sender == name.."-"..realm))) then
+					member = true
+					break
+				end
+			end
+			if not member then return end
+			local now = GetTime()
+			local function ValidTimer(name, duration, elapsed, color)
+				if not name or not duration or not elapsed or duration <= 0 or elapsed < 0 or elapsed >= duration then return false end
+				if color ~= "alliance" and color ~= "horde" and color ~= "info2" then return false end
+				if name == L["Ivus begins moving"] or name == L["Lokholar begins moving"] then return duration <= 600 end
+				return nodestates and nodestates[name] and nodestates[name] ~= "none" and duration <= math.max(245, self.bgprofile and self.bgprofile.capture or 245) and color ~= "info2"
+			end
 			if message == "r" then
+				if self.avSyncReplyTime and now - self.avSyncReplyTime < 5 then return end
+				self.avSyncReplyTime = now
 				for value, color in pairs(Capping.activebars) do
 					local f = Capping:GetBar(value)
-					if f and f:IsShown() then
+					if f and f:IsShown() and ValidTimer(value, f.duration, f.duration - f.remaining, color) then
 						SendAddonMessage("cap", format("%s@%d@%d@%s", value, f.duration, f.duration - f.remaining, color), "WHISPER", sender)
 					end
 				end
 			else
 				local name, duration, elapsed, color = strmatch(message, "^(.+)@(%d+)@(%d+)@(%a+)$")
+				duration, elapsed = tonumber(duration), tonumber(elapsed)
+				if not ValidTimer(name, duration, elapsed, color) then return end
+				if not self.avSyncReceiveTime or now - self.avSyncReceiveTime >= 1 then
+					self.avSyncReceiveTime, self.avSyncReceiveCount = now, 0
+				end
+				if self.avSyncReceiveCount >= 20 then return end
+				self.avSyncReceiveCount = self.avSyncReceiveCount + 1
 				local f = self:GetBar(name)
 				if name and elapsed and (not f or not f:IsShown()) then
 					local icon
@@ -310,8 +340,7 @@ function Capping:StartAV()
 					else
 						icon = GetIconData(color, strmatch(nodestates[name] or "symbol0", "(%a+)(%d+)") or "symbol")
 					end
-					duration = tonumber(duration) or 245
-					self:StartBar(name, duration, duration - (tonumber(elapsed) or 245), icon, color or "info2")
+					self:StartBar(name, duration, duration - elapsed, icon, color)
 				end
 			end
 		end
@@ -322,7 +351,7 @@ function Capping:StartAV()
 		end
 	end
 	
-	SetupAssault(245)
+	SetupAssault(self.bgprofile and self.bgprofile.capture or 245)
 	self:RegisterTempEvent("GOSSIP_SHOW", "AVQuests")
 	self:RegisterTempEvent("QUEST_PROGRESS", "AVQuests")
 	self:RegisterTempEvent("QUEST_COMPLETE", "AVQuests")
@@ -351,7 +380,8 @@ function Capping:StartEotS()
 			eftext:SetText("")
 			eficon:Hide()
 			if captured then
-				self:StartBar(L["Flag respawns"], 9, 9, GetIconData(strlower(UnitFactionGroup("player")), "flag"), "info2")
+			local duration = self.bgprofile and self.bgprofile.flagRespawn or 9
+			self:StartBar(L["Flag respawns"], duration, duration, GetIconData(strlower(UnitFactionGroup("player")), "flag"), "info2")
 			end
 			self:CheckCombat(SetEotSCarrierAttribute)
 		end
@@ -427,7 +457,8 @@ function Capping:StartIoC()
 			for _, value in ipairs(nodes) do
 				if strmatch(text, strlower(value)) then
 					if strmatch(text, assaulted) then
-						return self:StartBar(value, 62, 62, GetIconData(faction, "tower"), faction)
+						local duration = self.bgprofile and self.bgprofile.capture or 62
+						return self:StartBar(value, duration, duration, GetIconData(faction, "tower"), faction)
 					elseif strmatch(text, defended) or strmatch(text, taken) or strmatch(text, claimed) then
 						return self:StopBar(value)
 					end
@@ -447,14 +478,26 @@ function Capping:StartIoC()
 		-------------------------------------------------------
 		function Capping:IoCSync(prefix, message, chan, sender)  -- only sync for siege engine timer
 		-------------------------------------------------------
-			if sender == pname then return end
+			if type(sender) ~= "string" or sender == pname or type(message) ~= "string" or #message > 255 then return end
+			if chan ~= "BATTLEGROUND" and chan ~= "RAID" and chan ~= "WHISPER" then return end
+			if prefix ~= "cap" and prefix ~= "Cap" and prefix ~= "DBMv4-Mod" then return end
+			local member = false
+			for i = 1, GetNumRaidMembers() do
+				local name, realm = UnitName("raid"..i)
+				local rosterName = GetRaidRosterInfo(i)
+				if sender == rosterName or (name and (sender == name or (realm and realm ~= "" and sender == name.."-"..realm))) then
+					member = true
+					break
+				end
+			end
+			if not member then return end
 			if prefix == "cap" or prefix == "Cap" then
 				local f = self:GetBar(siege)
 				if (not f or not f:IsShown()) and message then
-					local faction, remain = strmatch(message, "(%a)(%d+)")
+					local faction, remain = strmatch(message, "^([ah])(%d+)$")
 					faction = (faction == "a" and "alliance") or (faction == "h" and "horde")
 					remain = (remain == "1" and 183) or (remain == "2" and 92) or tonumber(remain or 0) or 0
-					if faction and remain > 0 then
+					if faction and remain > 0 and remain <= 183 then
 						self:StartBar(siege, 183, remain, siegeicon, faction)
 					end
 				end
@@ -462,8 +505,9 @@ function Capping:StartIoC()
 				local isle, _, remain, faction = strsplit("\t", message)
 				if isle == "IsleofConquest" then
 					remain = (remain == "SEStart" and 183) or (remain == "SEHalfway" and 92) or nil
-					if remain and faction then
-						self:StartBar(siege, 183, remain, siegeicon, strlower(faction))
+					faction = faction and strlower(faction)
+					if remain and (faction == "alliance" or faction == "horde") then
+						self:StartBar(siege, 183, remain, siegeicon, faction)
 					end
 				end
 			end
@@ -492,7 +536,7 @@ function Capping:StartIoC()
 			end
 		end
 	end
-	SetupAssault(62, true)
+	SetupAssault(self.bgprofile and self.bgprofile.capture or 62, true)
 	self:RegisterTempEvent("CHAT_MSG_BG_SYSTEM_HORDE", "HIoCAssault")
 	self:RegisterTempEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE", "AIoCAssault")
 	self:RegisterTempEvent("CHAT_MSG_MONSTER_YELL", "SiegeEngine")

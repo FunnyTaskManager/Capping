@@ -1,9 +1,8 @@
 ## Interface: 30300
 ## Title: Capping
-## Author: TotalPackage
 ## Notes: |@Version: 1@|Battleground timers and other goodies.
 ## Notes-zhTW: 顯示戰場上的狀態條。
-## Version: 3.3.004
+## Version: 3.3.006
 
 ## SavedVariables: CappingDB
 ## SavedVariablesPerCharacter: CappingCharDB
@@ -26,3 +25,5 @@ locals\localization-zhTW.lua
 
 core.lua
 battlegrounds.lua
+localization-extra.lua
+battleground-profiles.lua

@@ -2,6 +2,7 @@
 local Capping = CreateFrame("Button", "Capping", UIParent)
 local self = Capping
 local L = CappingLocale
+Capping.locale = L
 
 -- LIBRARIES
 local media = LibStub("LibSharedMedia-3.0")
@@ -142,7 +143,11 @@ end)
 -- EVENT HANDLERS
 local elist, clist = {}, {}
 Capping:SetScript("OnEvent", function(this, event, ...)
-	this[elist[event] or event](this, ...)
+	if elist[event] == "AVQuests" then
+		this:AVQuests(event, ...)
+	else
+		this[elist[event] or event](this, ...)
+	end
 end)
 function Capping:RegisterTempEvent(event, other)
 	self:RegisterEvent(event)
@@ -175,6 +180,7 @@ function Capping:ADDON_LOADED(a1)
 	CappingDB = CappingDB or {}
 	db = CappingCharDB or (CappingDB.profiles and CappingDB.profiles.Default) or CappingDB
 	self.db = db
+	if self.InitBattlegroundDefaults then self:InitBattlegroundDefaults() end
 	if db.dbinit ~= 6 then 
 		db.dbinit = 6
 		local function SetDefaults(db, t)
@@ -182,7 +188,7 @@ function Capping:ADDON_LOADED(a1)
 				if type(db[k]) == "table" then
 					SetDefaults(db[k], v)
 				else
-					db[k] = (db[k] ~= nil and db[k]) or v
+					if db[k] == nil then db[k] = v end
 				end
 			end
 		end
@@ -225,7 +231,7 @@ function Capping:ADDON_LOADED(a1)
 		local function GetInfo(field)
 			return GetAddOnMetadata("Capping", field) or "N/A"
 		end
-		t2:SetFormattedText("Notes: %s\nAuthor: %s\nVersion: %s", GetInfo("Notes"), GetInfo("Author"), GetInfo("Version"))
+		t2:SetFormattedText("Notes: %s\nVersion: %s", GetInfo("Notes"), GetInfo("Version"))
 	
 		local b = CreateFrame("Button", nil, this, "UIPanelButtonTemplate")
 		SetWH(b, 120, 20)
@@ -346,6 +352,7 @@ end
 function Capping:ResetAll()  -- reset all timers and unregister temp events
 ---------------------------
 	wasInBG = false
+	if self.ResetBattlegroundProfile then self:ResetBattlegroundProfile() end
 	for event in pairs(elist) do  -- unregister all temp events
 		elist[event] = nil
 		self:UnregisterEvent(event)
@@ -366,7 +373,9 @@ function Capping:ZoneCheck()  -- check if new zone is a battleground
 	if instance == "pvp" then
 		local z = GetMapInfo()
 		wasInBG = true
-		if z == "WarsongGulch" and db.wsg then
+		if self.StartBattlegroundProfile then
+			self:StartBattlegroundProfile()
+		elseif z == "WarsongGulch" and db.wsg then
 			self:StartWSG()
 		elseif z == "NetherstormArena" and db.eots then
 			self:StartEotS()
@@ -405,8 +414,11 @@ function Capping:ZoneCheck()  -- check if new zone is a battleground
 		end
 	else
 		if instance == "arena" then
-			self:RegisterTempEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL", "CheckStartTimer")
 			wasInBG = true
+			if db.arena then
+				self:RegisterTempEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL", "CheckStartTimer")
+				if self.StartArenaProfile then self:StartArenaProfile() end
+			end
 		else
 			StartWinterGraspTimer()
 		end
@@ -800,6 +812,7 @@ function Capping:StopBar(name, this)
 ------------------------------------
 	local f = this or self:GetBar(name)
 	if f then
+		activebars[f.name] = nil
 		f.name = ""
 		f:Hide()
 		SortBars()
@@ -829,7 +842,7 @@ function Capping:CheckStartTimer(a1)  -- timer for when a battleground begins
 	end
 	if instance == "arena" and strmatch(a1, strlower(L["has begun"])) then  -- Shadow Sight spawn timer
 		local spell, _, icon = GetSpellInfo(34709)
-		self:StartBar(spell, 93, 93, icon, "info2")
+		self:StartBar(spell, 90, 90, icon, "info2")
 	end
 end
 
@@ -875,6 +888,7 @@ function ShowOptions(a1, id)
 	CappingDD.displayMode = "MENU"
 	local info = { }
 	local abbrv = { av = av, ab = ab, eots = eots, wsg = wsg, winter = winter, ioc = ioc, }
+	for _, option in ipairs(Capping.battlegroundOptions or {}) do abbrv[option.key] = L[option.name] end
 	local offsetvalue, offsetcount, lastb
 	local sbmover, cbmover, seatmover
 	local function UpdateLook(k)
@@ -966,14 +980,15 @@ function ShowOptions(a1, id)
 			bgtab:SetPoint("CENTER")
 		elseif k == "resetall" and IsShiftKeyDown() then
 			CappingDB = nil
+			CappingCharDB = nil
 			ReloadUI()
 		end
 	end
 	local function Set(b, k)
 		if not k then return end
 		db[k] = not db[k]
-		if abbrv[k] then  -- enable/disable a battleground while in it
-			if GetRealZoneText() == abbrv[k] then
+		if abbrv[k] or (k == "arena" and instance == "arena") then  -- enable/disable a battleground while in it
+			if GetRealZoneText() == abbrv[k] or (Capping.bgprofile and Capping.bgprofile.key == k) or k == "arena" then
 				Capping:ZONE_CHANGED_NEW_AREA()
 			elseif k == "winter" and not v then
 				Capping:StopBar(winter)
@@ -1143,6 +1158,11 @@ function ShowOptions(a1, id)
 				AddToggle(lvl, ioc, "ioc")
 				AddToggle(lvl, wsg, "wsg")
 				AddToggle(lvl, winter, "winter")
+				for _, option in ipairs(Capping.battlegroundOptions or {}) do
+					if not option.brawl then AddToggle(lvl, L[option.name], option.key) end
+				end
+				AddToggle(lvl, _G.ARENA or "Arena", "arena")
+				AddList(lvl, L["Brawls"], "brawls")
 			elseif sub == "bars" then
 				AddList(lvl, L["Texture"], "texture")
 				AddList(lvl, L["Width"], "width")
@@ -1173,6 +1193,12 @@ function ShowOptions(a1, id)
 				AddExecute(lvl, _G.RESET_TO_DEFAULT.." (".._G.SHIFT_KEY_TEXT..")", "resetall")
 			end
 		elseif lvl == 3 then
+			if UIDROPDOWNMENU_MENU_VALUE == "brawls" then
+				for _, option in ipairs(Capping.battlegroundOptions or {}) do
+					if option.brawl then AddToggle(lvl, L[option.name], option.key) end
+				end
+				return
+			end
 			local sub = UIDROPDOWNMENU_MENU_VALUE
 			if sub == "texture" or sub == "font" then
 				local t = media:List(sub == "texture" and "statusbar" or sub)
@@ -1238,4 +1264,3 @@ CONFIGMODE_CALLBACKS.Capping = function(action, mode)
 		end
 	end
 end
-
