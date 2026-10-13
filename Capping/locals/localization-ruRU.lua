@@ -8,7 +8,7 @@ CappingLocale:CreateLocaleTable({
 	["Warsong Gulch"] = "Ущелье Песни Войны",
 	["Eye of the Storm"] = "Око Бури",
 	["Wintergrasp"] = "Озеро Ледяных Оков",
-	--["Isle of Conquest"] = true,
+	["Isle of Conquest"] = "Остров Завоеваний",
 
 	-- options menu
 	["Auto Quest Turnins"] = "Авто сдача квестов",

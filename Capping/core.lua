@@ -231,7 +231,7 @@ function Capping:ADDON_LOADED(a1)
 		local function GetInfo(field)
 			return GetAddOnMetadata("Capping", field) or "N/A"
 		end
-		t2:SetFormattedText("Notes: %s\nVersion: %s", GetInfo("Notes"), GetInfo("Version"))
+		t2:SetFormattedText("Notes: %s\nAuthor: %s\nVersion: %s", GetInfo("Notes"), GetInfo("Author"), GetInfo("Version"))
 	
 		local b = CreateFrame("Button", nil, this, "UIPanelButtonTemplate")
 		SetWH(b, 120, 20)
@@ -352,6 +352,7 @@ end
 function Capping:ResetAll()  -- reset all timers and unregister temp events
 ---------------------------
 	wasInBG = false
+	self.avSyncReplyTimes = nil
 	if self.ResetBattlegroundProfile then self:ResetBattlegroundProfile() end
 	for event in pairs(elist) do  -- unregister all temp events
 		elist[event] = nil
@@ -392,6 +393,7 @@ function Capping:ZoneCheck()  -- check if new zone is a battleground
 				this.elapsed = (this.elapsed or 0) + elapsed
 				if this.elapsed < 4 then return end
 				this.elapsed = 0
+				if instance ~= "pvp" then this:Hide() return end
 				RequestBattlefieldScoreData()
 			end)
 			self:AddFrameToHide(self.bgtotals)

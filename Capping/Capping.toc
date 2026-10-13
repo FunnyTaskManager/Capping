@@ -1,5 +1,6 @@
 ## Interface: 30300
 ## Title: Capping
+## Author: TotalPackage
 ## Notes: |@Version: 1@|Battleground timers and other goodies.
 ## Version: 3.3.006
 

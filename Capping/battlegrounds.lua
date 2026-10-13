@@ -99,9 +99,6 @@ do  -- POI handling
 		end
 		Capping:RegisterTempEvent("WORLD_MAP_UPDATE")
 	end
-	function Capping:SetupAssault(duration, skipKeep)
-		SetupAssault(duration, skipKeep)
-	end
 	-----------------------------------
 	function Capping:WORLD_MAP_UPDATE()
 	-----------------------------------
@@ -313,8 +310,9 @@ function Capping:StartAV()
 				return nodestates and nodestates[name] and nodestates[name] ~= "none" and duration <= math.max(245, self.bgprofile and self.bgprofile.capture or 245) and color ~= "info2"
 			end
 			if message == "r" then
-				if self.avSyncReplyTime and now - self.avSyncReplyTime < 5 then return end
-				self.avSyncReplyTime = now
+				self.avSyncReplyTimes = self.avSyncReplyTimes or { }
+				if self.avSyncReplyTimes[sender] and now - self.avSyncReplyTimes[sender] < 5 then return end
+				self.avSyncReplyTimes[sender] = now
 				for value, color in pairs(Capping.activebars) do
 					local f = Capping:GetBar(value)
 					if f and f:IsShown() and ValidTimer(value, f.duration, f.duration - f.remaining, color) then
@@ -748,7 +746,7 @@ function Capping:StartWSG()
 		end
 	
 		playerfaction = UnitFactionGroup("player")
-		local ovverideFactionID = C_Unit:GetFactionByDebuff("player")
+		local ovverideFactionID = C_Unit.GetFactionByDebuff("player")
 		if ovverideFactionID then
 			playerfaction = ovverideFactionID == PLAYER_FACTION_GROUP.Alliance and "Alliance" or "Horde";
 		end

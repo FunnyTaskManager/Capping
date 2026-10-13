@@ -31,7 +31,7 @@ local translations = {
     ["Purple orb"] = "Фиолетовая сфера",
     ["Orange orb"] = "Оранжевая сфера",
     ["Green orb"] = "Зеленая сфера",
-    ["Blue orb"] = "Синяя сфера",
+    ["Blue orb"] = "Голубая сфера",
     ["Water cart"] = "Водная вагонетка",
     ["Middle cart"] = "Центральная вагонетка",
     ["Lava cart"] = "Лавовая вагонетка",
@@ -51,5 +51,4 @@ local translations = {
 }
 local locale = {}
 for key, value in pairs(translations) do locale[key] = GetLocale() == "ruRU" and value or key end
-if GetLocale() == "ruRU" then locale["Isle of Conquest"] = "Остров Завоеваний" end
 L:CreateLocaleTable(locale)

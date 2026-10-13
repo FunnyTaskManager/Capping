@@ -2,22 +2,22 @@ local Capping = Capping
 local L = Capping.locale
 local format, floor, min, max = string.format, math.floor, math.min, math.max
 local profiles = {
-    { key = "av", id = 1, area = 401, map = "AlteracValley", name = "Alterac Valley", legacy = "StartAV", capture = 240 },
-    { key = "wsg", id = 2, area = 443, map = "WarsongGulch", name = "Warsong Gulch", flags = true, flagRespawn = 23, limit = 900, flagSpells = {23335, 23333}, stackSpell = 318062 },
-    { key = "ab", id = 3, area = 461, map = "ArathiBasin", name = "Arathi Basin", capture = 60, rates = {10/11, 10/8, 2, 5, 30} },
-    { key = "eots", id = 7, area = 482, map = "NetherstormArena", name = "Eye of the Storm", legacy = "StartEotS", rates = {0.5, 1, 2.5, 5}, flagRespawn = 8 },
-    { key = "sa", id = 9, area = 512, map = "StrandoftheAncients", name = "Strand of the Ancients", round = true },
-    { key = "ioc", id = 30, area = 540, map = "IsleofConquest", name = "Isle of Conquest", legacy = "StartIoC", capture = 60 },
-    { key = "tp", id = 57, area = 932, map = "TwinPeaks", name = "Twin Peaks", flags = true, flagRespawn = 15, limit = 900, flagSpells = {313669, 313670}, pressure = {300, 600} },
-    { key = "bfg", id = 18, area = 915, map = "gilneasbattleground2", name = "The Battle for Gilneas", capture = 60, rates = {10/9, 10/3, 30} },
-    { key = "sv", id = 31, area = 610, map = "Battleground01", name = "Slavery Valley", capture = 60, boss = true },
-    { key = "sm", id = 12, area = 860, map = "STVDiamondMineBG", name = "Silvershard Mines", carts = true, empirical = true },
-    { key = "kt", id = 19, area = 916, map = "templeofkotmogu", name = "Temple of Kotmogu", orbs = true, empirical = true },
-    { key = "ca", id = 20, area = 917, map = "TempleCity", name = "Temple City of Ala'washte", flags = true, flagRespawn = 10, flagSpells = {311055, 311056}, pressure = {600, 900}, empirical = true, sandstorm = true },
-    { key = "avb", id = 58, area = 962, map = "alteracblitz", name = "Alterac Valley Blitz", capture = 90 },
-    { key = "abw", id = 59, area = 957, map = "arathibasinwinter", name = "Winter Arathi Basin", capture = 60, rates = {10/12, 10/9, 10/6, 10/3, 30}, blizzard = true, brawl = true },
-    { key = "tmf", id = 61, area = 959, name = "The Magnificent Five", flags = true, flagRespawn = 23, limit = 900, flagSpells = {23335, 23333}, stackSpell = 318062, brawl = true },
-    { key = "gl", id = 62, area = 960, name = "Gravity Lapse", legacy = "StartEotS", rates = {0.5, 1, 2.5, 5}, flagRespawn = 8, gravity = true, brawl = true },
+    { key = "av", id = 1, area = 402, map = "AlteracValley", name = "Alterac Valley", legacy = "StartAV", capture = 240 },
+    { key = "wsg", id = 2, area = 444, map = "WarsongGulch", name = "Warsong Gulch", flags = true, flagRespawn = 23, limit = 900, flagSpells = {23335, 23333}, stackSpell = 318062 },
+    { key = "ab", id = 3, area = 462, map = "ArathiBasin", name = "Arathi Basin", capture = 60, rates = {10/12, 10/9, 10/6, 10/3, 30} },
+    { key = "eots", id = 7, area = 483, map = "NetherstormArena", name = "Eye of the Storm", legacy = "StartEotS", rates = {0.5, 1, 2.5, 5}, flagRespawn = 8 },
+    { key = "sa", id = 9, area = 513, map = "StrandoftheAncients", name = "Strand of the Ancients", round = true },
+    { key = "ioc", id = 30, area = 541, map = "IsleofConquest", name = "Isle of Conquest", legacy = "StartIoC", capture = 60 },
+    { key = "tp", id = 57, area = 933, map = "TwinPeaks", name = "Twin Peaks", flags = true, flagRespawn = 15, limit = 900, flagSpells = {313669, 313670}, pressure = {300, 600} },
+    { key = "bfg", id = 18, area = 916, map = "gilneasbattleground2", name = "The Battle for Gilneas", capture = 60, rates = {10/9, 10/3, 30} },
+    { key = "sv", id = 31, area = 611, map = "Battleground01", name = "Slavery Valley", capture = 60, boss = true },
+    { key = "sm", id = 12, area = 861, map = "STVDiamondMineBG", name = "Silvershard Mines", carts = true, empirical = true },
+    { key = "kt", id = 19, area = 917, map = "templeofkotmogu", name = "Temple of Kotmogu", orbs = true, empirical = true },
+    { key = "ca", id = 20, area = 918, map = "TempleCity", name = "Temple City of Ala'washte", flags = true, flagRespawn = 10, flagSpells = {311055, 311056}, pressure = {600, 900}, empirical = true, sandstorm = true },
+    { key = "avb", id = 58, area = 963, map = "alteracblitz", name = "Alterac Valley Blitz", capture = 90 },
+    { key = "abw", id = 59, area = 958, map = "arathibasinwinter", name = "Winter Arathi Basin", capture = 60, rates = {10/12, 10/9, 10/6, 10/3, 30}, blizzard = true, brawl = true },
+    { key = "tmf", id = 61, area = 960, name = "The Magnificent Five", flags = true, flagRespawn = 23, limit = 900, flagSpells = {23335, 23333}, stackSpell = 318062, brawl = true },
+    { key = "gl", id = 62, area = 961, name = "Gravity Lapse", legacy = "StartEotS", rates = {0.5, 1, 2.5, 5}, flagRespawn = 8, gravity = true, brawl = true },
 }
 Capping.battlegroundProfiles = profiles
 Capping.battlegroundOptions = {}
@@ -30,7 +30,7 @@ for _, profile in ipairs(profiles) do
     end
 end
 
-local state, panel, eventFrame, BattleStarted
+local state, panel, eventFrame, BattleStarted, targetsQueued
 local buttons = {}
 local icon = "Interface\\Icons\\INV_Misc_PocketWatch_01"
 local flagIcon = "Interface\\Icons\\INV_BannerPVP_01"
@@ -99,14 +99,26 @@ local function Sync(label, duration, remaining, color)
     end
 end
 
+local function PlaceButtons()
+    local left, bottom = panel:GetLeft(), panel:GetBottom()
+    if not left then return end
+    for i, button in ipairs(buttons) do
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, bottom - (i - 1) * 18 - 4)
+    end
+end
+
 local function SetInfo(lines)
     if panel then
         panel.text:SetText(table.concat(lines, "\n"))
         panel:SetHeight(max(16, #lines * 15))
+        if not InCombatLockdown() then PlaceButtons() end
     end
 end
 
 local function ApplyTargets()
+    targetsQueued = nil
+    if panel then PlaceButtons() end
     for _, button in ipairs(buttons) do
         local holder = state and state.holders[button.index]
         button:SetAttribute("macrotext", holder and holder.name and "/targetexact "..holder.name or "")
@@ -133,7 +145,6 @@ local function CreatePanel()
             end
         end)
         button.index = i
-        button:SetPoint("TOPLEFT", panel, "BOTTOMLEFT", 0, -(i - 1) * 18 - 4)
         button.text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         button.text:SetAllPoints()
         button.text:SetJustifyH("LEFT")
@@ -154,7 +165,10 @@ local function Holder(index, name, faction)
         buttons[index]:SetAlpha(InCombatLockdown() and 0.6 or 1)
         buttons[index].text:SetText(name or "")
     end
-    Capping:CheckCombat(ApplyTargets)
+    if not targetsQueued then
+        targetsQueued = true
+        Capping:CheckCombat(ApplyTargets)
+    end
 end
 
 local nodeTextures = {
@@ -176,7 +190,7 @@ for _, intact in ipairs({77, 80, 102, 105, 108}) do
 end
 
 local function ScanNodes(lines)
-    if not state then return end
+    if not state or state.profile.legacy then return end
     local profile = state.profile
     for i = 1, GetNumMapLandmarks() do
         local name, _, texture = GetMapLandmarkInfo(i)
@@ -202,7 +216,7 @@ local function ReadScores(lines)
     local profile, scores = state.profile, {}
     local timerFound, bossFound = false, false
     for i = 1, GetNumWorldStateUI() do
-        local uiType, _, text, texture, _, _, dynamicTooltip, extended = GetWorldStateUIInfo(i)
+        local uiType, _, text, texture, _, _, _, extended = GetWorldStateUIInfo(i)
         if uiType == 0 and extended ~= "CAPTUREPOINT" and text and text ~= "" then
             local values = Numbers(text)
             local faction = texture and (texture:find("Alliance") and 1 or texture:find("Horde") and 2)
@@ -211,11 +225,7 @@ local function ReadScores(lines)
                 elseif #values >= 3 then scores[faction] = {bases = values[1], value = values[2], maximum = values[3]}
                 elseif #values == 2 then scores[faction] = {value = values[1], maximum = values[2]}
                 else scores[faction] = {value = values[1]} end
-                if profile.flags and dynamicTooltip and dynamicTooltip ~= "" then
-                    local name = Clean(dynamicTooltip):match("^([^%s:]+)$")
-                    if name then Holder(faction == 1 and 2 or 1, name, faction == 1 and 2 or 1) end
-                end
-            elseif (not texture or texture == "") and #values > 0 and (profile.round or profile.limit) then
+            elseif (not texture or texture == "") and #values > 0 and (profile.limit or (profile.round and Clean(text):find(L["Round ends"], 1, true))) then
                 local remaining = values[1] * 60 + (values[2] or 0)
                 local label = L[profile.round and "Round ends" or "Battle ends"]
                 -- WSG exposes whole minutes; retain its last boundary instead of restarting the bar on every event.
@@ -342,17 +352,6 @@ local function Update()
         for i = 1, 3 do lines[#lines + 1] = L[cartNames[i]]..": "..(state.carts[i] and factionNames[state.carts[i]] or L["Neutral"]) end
         if state.tracks then lines[#lines + 1] = state.tracks end
     elseif state.profile.orbs then
-        if GetBattlefieldVehicleInfo then
-            for i = 1, 4 do
-                local _, _, name, _, vehicleType, _, _, _, faction = GetBattlefieldVehicleInfo(i)
-                local index = vehicleType and (vehicleType:find("Purple") and 1 or vehicleType:find("Orange") and 2 or vehicleType:find("Green") and 3 or vehicleType:find("Blue") and 4)
-                if index and name and faction ~= nil then
-                    local team = faction == 1 and 1 or 2
-                    Holder(index, name, team)
-                    state.orbs[index] = team
-                end
-            end
-        end
         for i = 1, 4 do
             lines[#lines + 1] = L[orbNames[i]]..": "..(state.orbs[i] and factionNames[state.orbs[i]] or L["Available"])
         end
@@ -470,10 +469,10 @@ end
 
 local function OrbMessage(text, faction)
     if not state or not state.profile.orbs then return end
-    local patterns = {{"фиолет", "Purple"}, {"оранж", "Orange"}, {"зелен", "Green"}, {"син", "Blue"}}
-    local lower = text:gsub("ё", "е"):gsub("Ё", "Е"):gsub("Фиолет", "фиолет"):gsub("Оранж", "оранж"):gsub("Зелен", "зелен"):gsub("Син", "син")
+    local patterns = {{"фиолет", "Purple"}, {"оранж", "Orange"}, {"зелен", "Green"}, {"син", "Blue", "голуб"}}
+    local lower = text:gsub("ё", "е"):gsub("Ё", "Е"):gsub("Фиолет", "фиолет"):gsub("Оранж", "оранж"):gsub("Зелен", "зелен"):gsub("Син", "син"):gsub("Голуб", "голуб")
     for i, words in ipairs(patterns) do
-        if lower:find(words[1], 1, true) or text:find(words[2], 1, true) then
+        if lower:find(words[1], 1, true) or text:find(words[2], 1, true) or (words[3] and lower:find(words[3], 1, true)) then
             local name = text:match("^(.+) захватывает") or text:match("^(.+) has taken")
             Holder(i, name, faction)
             state.orbs[i] = name and faction or nil
@@ -530,15 +529,10 @@ local function ServerMessage(prefix, message, channel, sender)
     end
 end
 
-local function CombatLog(...)
+local function CombatLog(_, event, _, _, _, destGUID, _, _, spell)
     if not state then return end
-    local args = {...}
-    if #args == 0 and CombatLogGetCurrentEventInfo then args = {CombatLogGetCurrentEventInfo()} end
-    local modern = type(args[3]) == "boolean"
-    local event, destGUID = args[2], args[modern and 8 or 6]
-    local spell = args[modern and 12 or 9]
     if state.profile.carts and event == "UNIT_DIED" and destGUID then
-        local entry = tonumber(destGUID:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")) or tonumber(destGUID:sub(7, 12), 16)
+        local entry = tonumber(destGUID:sub(7, 12), 16)
         local index = entry and entry - 900199
         if index and index >= 1 and index <= 3 then Start(format(L["Cart respawns: %s"], L[cartNames[index]]), 10, 10) end
     elseif state.profile.gravity and (event == "SPELL_AURA_APPLIED" or event == "SPELL_CAST_SUCCESS") and (spell == 319091 or spell == 319092) then
@@ -577,7 +571,8 @@ local function EnableEvents()
             UpdateCycles()
         end)
     end
-    for _, event in ipairs({"CHAT_MSG_BG_SYSTEM_NEUTRAL", "CHAT_MSG_BG_SYSTEM_ALLIANCE", "CHAT_MSG_BG_SYSTEM_HORDE", "CHAT_MSG_ADDON", "COMBAT_LOG_EVENT_UNFILTERED", "UPDATE_WORLD_STATES", "WORLD_MAP_UPDATE", "UPDATE_BATTLEFIELD_SCORE"}) do eventFrame:RegisterEvent(event) end
+    for _, event in ipairs({"CHAT_MSG_BG_SYSTEM_NEUTRAL", "CHAT_MSG_BG_SYSTEM_ALLIANCE", "CHAT_MSG_BG_SYSTEM_HORDE", "CHAT_MSG_ADDON", "UPDATE_WORLD_STATES", "WORLD_MAP_UPDATE", "UPDATE_BATTLEFIELD_SCORE"}) do eventFrame:RegisterEvent(event) end
+    if state.profile.carts or state.profile.gravity then eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED") end
     if eventFrame.RegisterCustomEvent then
         eventFrame:RegisterCustomEvent("START_TIMER")
         eventFrame:RegisterCustomEvent("STOP_TIMER_OF_TYPE")
